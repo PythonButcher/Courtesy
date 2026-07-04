@@ -85,6 +85,15 @@ Courtesy/
 ├── schema/                # Database schema intake notes
 │   └── README.md          # Instructions for schema integration
 │
+├── project_docs/          # Agent harness and project documentation
+│   ├── INDEX.md           # Top-level routing map
+│   └── active/
+│       ├── README.md      # Current project state and verification ladder
+│       └── agent_harness/ # Harness blueprint, hooks guidance
+│
+├── .codex/hooks/          # Conservative validation scripts
+│   └── courtesy_harness_check.py
+│
 └── docs/                  # Project documentation
     ├── architecture.md    # System architecture overview
     └── integration.md     # Future integration plan
@@ -102,6 +111,8 @@ Courtesy/
 | Frontend builds           | `npm run build`                      | `frontend/`  | No errors                |
 | TypeScript type-check     | `npx tsc --noEmit`                   | `frontend/`  | No errors                |
 | Frontend dev server       | `npm run dev`                        | `frontend/`  | Workspace shell renders  |
+| Harness validation        | `python .codex/hooks/courtesy_harness_check.py` | repo root | All checks pass |
+| Whitespace check          | `git diff --check`                   | repo root    | No errors                |
 
 ---
 

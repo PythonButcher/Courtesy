@@ -4,6 +4,15 @@
 
 Courtesy is an operations-focused court case workspace. It is a separate app from AI_Tool Decision Intelligence but is designed for later integration.
 
+## Start Here
+
+| Need | Read |
+| --- | --- |
+| Start any task | `project_docs/INDEX.md` |
+| Current project state | `project_docs/active/README.md` |
+| Agent harness and hooks | `project_docs/active/agent_harness/README.md` |
+| Quick start and structure | `README.md` |
+
 ## Stack
 
 | Layer    | Technology                                        |
@@ -25,6 +34,7 @@ Courtesy is an operations-focused court case workspace. It is a separate app fro
 | Run backend tests   | `python -m pytest tests/`                            | `backend/`        |
 | Lint frontend       | `npm run lint`                                       | `frontend/`       |
 | Type-check frontend | `npx tsc --noEmit`                                   | `frontend/`       |
+| Harness validation  | `python .codex/hooks/courtesy_harness_check.py`      | repo root         |
 
 ## Protected Paths
 
