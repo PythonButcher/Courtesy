@@ -1,18 +1,22 @@
-import { Box, Typography, Chip, Skeleton } from '@mui/material';
+import { Box, Typography, Chip, Skeleton, Button } from '@mui/material';
 import type { CourtCase } from '../types';
+import ClearIcon from '@mui/icons-material/Clear';
 
 interface CaseListProps {
   cases: CourtCase[];
   selectedCaseId: number | null;
   onSelectCase: (caseId: number) => void;
   loading: boolean;
+  onClearFilters?: () => void;
 }
 
 const STATUS_COLORS: Record<string, 'success' | 'warning' | 'default' | 'error' | 'info'> = {
-  Active: 'success',
-  'Pending Review': 'warning',
+  Active: 'info',
   Closed: 'default',
-  Dismissed: 'info',
+  Pending: 'warning',
+  'Pending Review': 'warning',
+  Dismissed: 'default',
+  Settled: 'success',
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -28,7 +32,7 @@ const TYPE_COLORS: Record<string, string> = {
  * Displays a scrollable list of court cases with status chips
  * and type indicators.
  */
-export function CaseList({ cases, selectedCaseId, onSelectCase, loading }: CaseListProps) {
+export function CaseList({ cases, selectedCaseId, onSelectCase, loading, onClearFilters }: CaseListProps) {
   if (loading) {
     return (
       <Box sx={{ p: 2 }}>
@@ -139,10 +143,15 @@ export function CaseList({ cases, selectedCaseId, onSelectCase, loading }: CaseL
       ))}
 
       {cases.length === 0 && (
-        <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Box sx={{ p: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
           <Typography variant="body2" color="text.secondary">
-            No cases match your search.
+            No cases match your filters.
           </Typography>
+          {onClearFilters && (
+            <Button size="small" variant="outlined" onClick={onClearFilters} startIcon={<ClearIcon />}>
+              Clear Filters
+            </Button>
+          )}
         </Box>
       )}
     </Box>

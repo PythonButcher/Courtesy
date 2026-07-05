@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   Box,
   List,
@@ -6,6 +7,10 @@ import {
   ListItemText,
   Typography,
   Divider,
+  useMediaQuery,
+  useTheme,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import GavelIcon from '@mui/icons-material/Gavel';
 import EventIcon from '@mui/icons-material/Event';
@@ -13,6 +18,8 @@ import AssignmentLateIcon from '@mui/icons-material/AssignmentLate';
 import DescriptionIcon from '@mui/icons-material/Description';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import SettingsIcon from '@mui/icons-material/Settings';
+import MenuIcon from '@mui/icons-material/Menu';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
 interface SidebarProps {
   activeNav: string;
@@ -33,106 +40,161 @@ const NAV_ITEMS = [
  * Left sidebar with main navigation items for the court workspace.
  */
 export function Sidebar({ activeNav, onNavigate }: SidebarProps) {
+  const theme = useTheme();
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('courtesy_sidebar_collapsed');
+    return saved === 'true';
+  });
+
+  useEffect(() => {
+    if (isTablet) setIsCollapsed(true);
+  }, [isTablet]);
+
+  const handleToggle = () => {
+    const newValue = !isCollapsed;
+    setIsCollapsed(newValue);
+    localStorage.setItem('courtesy_sidebar_collapsed', String(newValue));
+  };
+
+  const width = isMobile ? 64 : isCollapsed ? 64 : 220;
+
   return (
     <Box
       sx={{
-        width: 220,
-        minWidth: 220,
+        width,
+        minWidth: width,
         backgroundColor: '#0d1117',
         borderRight: '1px solid',
         borderColor: 'divider',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
+        transition: 'width 0.2s ease',
+        overflow: 'hidden'
       }}
     >
       {/* Logo / App Title */}
       <Box
         sx={{
-          px: 2.5,
-          py: 2,
+          height: 56,
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5,
+          justifyContent: isCollapsed ? 'center' : 'space-between',
+          px: isCollapsed ? 1 : 2.5,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
         }}
       >
-        <Box
-          sx={{
-            width: 32,
-            height: 32,
-            borderRadius: '8px',
-            background: 'linear-gradient(135deg, #5c8aff 0%, #7c5cbf 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '0.9rem',
-            fontWeight: 700,
-            color: '#fff',
-          }}
-        >
-          C
-        </Box>
-        <Typography
-          variant="h2"
-          sx={{
-            fontSize: '1.1rem',
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #5c8aff, #a88ae0)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          Courtesy
-        </Typography>
+        {!isCollapsed && (
+          <Typography
+            variant="h2"
+            sx={{
+              color: 'primary.light',
+              fontSize: '1.25rem',
+              letterSpacing: '-0.02em',
+              fontWeight: 700,
+            }}
+          >
+            Courtesy
+          </Typography>
+        )}
+        {!isMobile && (
+          <IconButton size="small" onClick={handleToggle} sx={{ color: 'text.secondary' }}>
+            {isCollapsed ? <MenuIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />}
+          </IconButton>
+        )}
       </Box>
 
-      <Divider sx={{ mx: 1.5 }} />
+      {/* Primary Navigation */}
+      <List sx={{ px: 1, py: 2, flex: 1 }}>
+        {NAV_ITEMS.map((item) => {
+          const isActive = activeNav === item.key;
+          const content = (
+            <ListItemButton
+              key={item.key}
+              onClick={() => onNavigate(item.key)}
+              sx={{
+                borderRadius: '6px',
+                mb: 0.5,
+                justifyContent: isCollapsed ? 'center' : 'flex-start',
+                px: isCollapsed ? 1 : 1.5,
+                backgroundColor: isActive ? 'rgba(92, 138, 255, 0.15)' : 'transparent',
+                color: isActive ? 'primary.light' : 'text.secondary',
+                '&:hover': {
+                  backgroundColor: isActive ? 'rgba(92, 138, 255, 0.25)' : 'rgba(255,255,255,0.05)',
+                  color: isActive ? 'primary.light' : 'text.primary',
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  mr: isCollapsed ? 0 : 1.5,
+                  color: 'inherit',
+                  '& svg': { fontSize: 20 },
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              {!isCollapsed && (
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    fontSize: '0.875rem',
+                    fontWeight: isActive ? 600 : 500,
+                  }}
+                />
+              )}
+            </ListItemButton>
+          );
 
-      {/* Navigation Items */}
-      <List sx={{ flex: 1, py: 1 }}>
-        {NAV_ITEMS.map((item) => (
+          return isCollapsed ? (
+            <Tooltip title={item.label} placement="right" key={item.key}>
+              {content}
+            </Tooltip>
+          ) : content;
+        })}
+      </List>
+
+      <Divider />
+
+      {/* Bottom Settings */}
+      <List sx={{ px: 1, py: 2 }}>
+        <Tooltip title={isCollapsed ? "Settings" : ""} placement="right">
           <ListItemButton
-            key={item.key}
-            selected={activeNav === item.key}
-            onClick={() => onNavigate(item.key)}
-            sx={{ py: 1 }}
+            onClick={() => onNavigate('settings')}
+            sx={{
+              borderRadius: '6px',
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              px: isCollapsed ? 1 : 1.5,
+              color: 'text.secondary',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                color: 'text.primary',
+              },
+            }}
           >
             <ListItemIcon
               sx={{
-                minWidth: 36,
-                color: activeNav === item.key ? 'primary.main' : 'text.secondary',
+                minWidth: 0,
+                mr: isCollapsed ? 0 : 1.5,
+                color: 'inherit',
+                '& svg': { fontSize: 20 },
               }}
             >
-              {item.icon}
+              <SettingsIcon />
             </ListItemIcon>
-            <ListItemText
-              primary={item.label}
-              primaryTypographyProps={{
-                fontSize: '0.85rem',
-                fontWeight: activeNav === item.key ? 600 : 400,
-              }}
-            />
+            {!isCollapsed && (
+              <ListItemText
+                primary="Settings"
+                primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: 500 }}
+              />
+            )}
           </ListItemButton>
-        ))}
-      </List>
-
-      {/* Bottom Settings */}
-      <List sx={{ pb: 1 }}>
-        <Divider sx={{ mx: 1.5, mb: 1 }} />
-        <ListItemButton
-          selected={activeNav === 'settings'}
-          onClick={() => onNavigate('settings')}
-          sx={{ py: 1 }}
-        >
-          <ListItemIcon sx={{ minWidth: 36, color: 'text.secondary' }}>
-            <SettingsIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Settings"
-            primaryTypographyProps={{ fontSize: '0.85rem' }}
-          />
-        </ListItemButton>
+        </Tooltip>
       </List>
     </Box>
   );
