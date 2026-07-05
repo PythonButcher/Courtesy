@@ -22,6 +22,7 @@ This is the top-level routing file. Use it to find the smallest current document
 | Check PostgreSQL schema | `Courtesy Postgres Schema.md` (protected — do not modify) |
 | Understand schema integration steps | `schema/README.md` |
 | Work with the agent harness | `project_docs/active/agent_harness/README.md` |
+| See the full implementation roadmap | `project_docs/active/courtesy_roadmap.md` |
 | Run harness validation | `python .codex/hooks/courtesy_harness_check.py` |
 
 ## Current Product State

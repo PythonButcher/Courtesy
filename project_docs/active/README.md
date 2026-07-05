@@ -52,6 +52,7 @@ Run these checks in order. Each succeeding check assumes the previous one passed
 | Project routing | `project_docs/INDEX.md` | Smallest-doc-first navigation |
 | Active navigation | `project_docs/active/README.md` | This file |
 | Agent harness | `project_docs/active/agent_harness/` | Harness docs, hook guidance |
+| Implementation roadmap | `project_docs/active/courtesy_roadmap.md` | 9-phase plan, all 20 items |
 | Hook scripts | `.codex/hooks/` | Conservative, non-mutating validation |
 | Architecture | `docs/architecture.md` | System overview |
 | Integration plan | `docs/integration.md` | PostgreSQL + AI_Tool bridge design |
