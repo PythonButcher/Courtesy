@@ -6,6 +6,32 @@
 
 ---
 
+## Schema Extension Policy
+
+> [!CAUTION]
+> The current PostgreSQL schema (`Courtesy Postgres Schema.md`) contains 17 tables and 1 view. It does **not** include tables for tasks, documents, notes, users, audit logs, or AI bridge history. This roadmap references all of those features, but referencing a feature is not permission to create new database tables.
+
+**Rule**: Courtesy must not add app-owned tables to the production PostgreSQL database without explicit user approval. Until that approval is given:
+
+| Feature | What is allowed now | What requires user approval |
+| --- | --- | --- |
+| Tasks | Mock fixtures, frontend-local state, in-memory backend storage | New `tasks` table via migration |
+| Documents | Mock fixtures, metadata-only API, frontend-local state | New `documents` table via migration |
+| Notes | Mock fixtures, frontend-local state, use of `cases.description` | New `case_notes` table via migration |
+| Users / Auth | Mock users, hardcoded dev credentials, frontend-local auth state | New `users` table via migration |
+| Audit Logs | Console/file logging, in-memory log buffer | New `audit_log` table via migration |
+| AI Bridge History | Mock packet/artifact storage, frontend-local history | New `decision_prep_packets` / `decision_prep_artifacts` tables |
+
+When a phase needs a new table, it must:
+1. Propose the schema addition in a plan or doc (not silently create it).
+2. Wait for the user to approve the specific table definition.
+3. Add the table through a versioned Alembic migration, not raw DDL.
+4. Leave `Courtesy Postgres Schema.md` unmodified — it documents the user's existing court database, not Courtesy's application tables.
+
+Until approval, the feature works with mock fixtures, frontend-local state, or in-memory backend storage. This keeps every phase safe to execute without database side effects.
+
+---
+
 ## Phase Overview
 
 ```mermaid
@@ -57,54 +83,67 @@ graph TD
 
 Make the Courtesy workspace feel like a professional operations tool, not a prototype. The first screen remains the court workspace shell. All data stays mock until backend contracts are ready.
 
-### Scope
+> [!IMPORTANT]
+> Phase 1 is scoped to **workspace essentials only**. Advanced interactions, micro-animations, keyboard shortcuts, and deep quick-actions are deferred to a follow-up polish pass unless the user explicitly asks for them.
 
-#### Responsive Layout & Navigation
-- Collapsible sidebar with active/hover states, section indicators, and keyboard shortcuts
+### Scope — Workspace Essentials
+
+#### Responsive Shell
+- Collapsible sidebar with active/hover states and section indicators
 - Responsive breakpoints: full desktop (≥1280px), compact desktop (≥960px), tablet (≥600px), narrow fallback
 - Persistent navigation state (selected section, sidebar collapsed/expanded) via local storage
-- Breadcrumb trail for nested views (Case List → Case Detail → Hearing → etc.)
 
 #### State Handling
 - **Loading states**: Skeleton screens for case list, detail panel, and data tables — no blank screens or spinners without context
-- **Empty states**: Illustrated empty states with guidance ("No cases match your filter" with clear-filter action)
-- **Error states**: Graceful degradation when backend is unavailable — show last-known mock data with a clear "offline" indicator
+- **Empty states**: Informative empty states with guidance ("No cases match your filter" with clear-filter action)
+- **Error states**: Graceful degradation when backend is unavailable — show mock data with a clear "offline" indicator
 - **Partial states**: Handle cases with missing hearings, no tasks, no documents — each section shows its own empty state
 
-#### Case Detail Ergonomics
-- Tabbed or sectioned detail view: Overview, Hearings, Tasks, Documents, Parties, Notes, Decision Prep
-- Sticky header with case number, status badge, and quick actions
+#### Case Detail Tabs / Sections
+- Tabbed or sectioned detail view: Overview, Hearings, Tasks, Documents, Parties, Decision Prep
+- Sticky header with case number and status badge
 - Dense but scannable layout — operations users need information density, not whitespace
-- Copy-to-clipboard on case numbers, dates, and key identifiers
 
-#### Search & Filter Polish
+#### Filter & Sort Controls
 - Debounced search input with clear button and result count
 - Filter chips for status, case type, court, assigned judge
 - Sort controls for case list (filing date, next hearing, case number, status)
 - Preserved filter state across navigation
 
-#### Task & Hearing Panels
+#### Task & Hearing Panel Polish
 - Task panel: grouped by priority, sortable by due date, visual overdue indicators (red), upcoming (amber), complete (muted)
 - Hearing panel: timeline layout with past/upcoming grouping, courtroom and judge info, result summary for completed hearings
-- Both panels: expandable/collapsible rows, quick-action buttons (mark complete, reschedule placeholder)
 
-#### Visual Polish
+#### Visual Foundation
 - Consistent spacing system (4px/8px/16px/24px/32px grid)
 - Status color system: Active (blue), Closed (gray), Pending (amber), Dismissed (muted), Settled (green)
 - Typography hierarchy: clear distinction between labels, values, headings, and metadata
-- Micro-animations: panel transitions, filter chip add/remove, sidebar collapse, skeleton shimmer
 - Dark theme refinement: check contrast ratios, focus indicators, hover states
+
+### Deferred to Follow-Up Polish (Not in Phase 1)
+
+These items are valuable but not essential for the first implementation pass:
+
+- Keyboard shortcuts for navigation
+- Micro-animations (panel transitions, filter chip add/remove, skeleton shimmer)
+- Copy-to-clipboard on case numbers, dates, and identifiers
+- Breadcrumb trail for nested views
+- Expandable/collapsible rows in task and hearing panels
+- Quick-action buttons (mark complete, reschedule placeholder)
+- Advanced quick actions in the case detail sticky header
+
+These can be added in a focused polish pass after the workspace essentials are solid, or when the user explicitly requests them.
 
 ### Deliverables
 
 | Deliverable | Acceptance |
 | --- | --- |
-| Responsive layout at 4 breakpoints | Sidebar collapses, panels reflow, no horizontal scroll |
+| Responsive shell at 4 breakpoints | Sidebar collapses, panels reflow, no horizontal scroll |
 | Loading/empty/error states for all panels | Every data section has all three states |
 | Tabbed case detail view | Each tab renders with mock data or empty state |
 | Filter/sort controls on case list | Filters persist across navigation |
 | Task panel with priority grouping | Overdue items visually distinct |
-| Hearing timeline panel | Past/upcoming split, courtroom info visible |
+| Hearing panel with past/upcoming split | Courtroom info visible |
 
 ### Acceptance Checks
 
@@ -119,11 +158,14 @@ Make the Courtesy workspace feel like a professional operations tool, not a prot
 ## Phase 2 — Backend Data Architecture
 
 **Items**: #2 (PostgreSQL Schema Mapping), #3 (Database Connection Layer), #4 (Repository/Data Access Layer)
-**Layer**: Backend only · No frontend changes · No real DB connection yet
+**Layer**: Backend only · No frontend changes
+
+> [!IMPORTANT]
+> Phase 2 builds models, config, session scaffolding, repository interfaces, and mock repository implementations. Actual SQLAlchemy-to-PostgreSQL query behavior is **not implemented** until `DATABASE_URL`, staging database access, and the schema extension policy (see above) are explicitly authorized by the user. Until then, the `DBRepository` classes are defined as stubs/interfaces, and all routes continue to use mock repositories.
 
 ### Goal
 
-Build the full data foundation so that routes can switch from mock fixtures to real PostgreSQL without changing route logic. The repository pattern is the key: routes call repositories, repositories call either mock fixtures or SQLAlchemy sessions.
+Build the data foundation so that routes can switch from mock fixtures to real PostgreSQL later without changing route logic. In this phase, only mock repositories are active. The repository pattern is the key: routes call repositories, repositories read from mock fixtures now and can read from SQLAlchemy sessions later.
 
 ### Scope
 
@@ -153,29 +195,35 @@ Map every table from `Courtesy Postgres Schema.md` into SQLAlchemy 2.x declarati
 
 **Rules**:
 - Map columns exactly as documented — do not add, rename, or remove columns
+- Do not create models for tables that do not exist in the schema (tasks, documents, notes, users, audit_log). See the Schema Extension Policy.
 - Use SQLAlchemy 2.x `Mapped[]` / `mapped_column()` syntax
 - Define all FK relationships with `relationship()` and `back_populates`
 - Place models in `backend/app/models/` — one file per logical group (core, criminal, financial)
 - Mark `vw_case_summary` as a read-only reflection or SQL expression, not a writable model
+- These models define the mapping for a future DB connection. They do not create tables, run migrations, or attempt any database I/O in this phase.
 
-#### 2B — Database Connection Layer (Item #3)
+#### 2B — Database Connection Scaffolding (Item #3)
 
 - Add `DATABASE_URL` parsing from `.env` with validation
-- Create `backend/app/database.py`: engine creation, session factory, session lifecycle
-- Connection pooling: `pool_size=5`, `max_overflow=10`, `pool_timeout=30` (configurable via env)
-- **Safe-by-default**: When `DATABASE_URL` is empty or missing, the app starts normally and falls back to mock fixtures
-- Health endpoint (`/api/health`) reports database connectivity status when DB is configured
-- Add `backend/app/database.py` to the import chain but keep it lazy — no connection attempt until a request needs it
+- Create `backend/app/database.py`: engine creation factory, session factory, session lifecycle pattern
+- Connection pooling configuration: `pool_size=5`, `max_overflow=10`, `pool_timeout=30` (configurable via env)
+- **Safe-by-default**: When `DATABASE_URL` is empty or missing, the app starts normally using mock fixtures. No connection attempt is made.
+- Health endpoint (`/api/health`) reports database connectivity status when DB is configured, "not configured" otherwise
+- `database.py` is importable but entirely inert without a `DATABASE_URL` — no engine created, no connection pooled, no session opened
+
+> [!NOTE]
+> This is scaffolding, not a live database connection. The engine, session factory, and lifecycle pattern are defined so that a future phase can activate them by setting `DATABASE_URL` and receiving user authorization. Until then, no database I/O occurs.
 
 #### 2C — Repository / Data Access Layer (Item #4)
 
-- Create `backend/app/repositories/` with repository classes per domain:
+- Create `backend/app/repositories/` with repository interfaces and implementations per domain:
   - `CaseRepository` — list, get, filter, search
   - `HearingRepository` — list, filter by case, filter upcoming
   - `TaskRepository` — list, filter by priority/status/case
   - Additional repositories as needed (parties, charges, payments, warrants)
-- Each repository has a `MockRepository` implementation (reads from current fixtures) and a `DBRepository` implementation (reads from SQLAlchemy session)
-- Factory function selects implementation based on `DATABASE_URL` availability
+- **`MockRepository` implementations (active now)**: Read from current mock fixtures. These are the only implementations that execute in this phase.
+- **`DBRepository` stubs (inactive)**: Define the interface and method signatures for future SQLAlchemy query implementations. Method bodies raise `NotImplementedError` or return empty results with a log warning. They are not wired into routes.
+- Factory function selects `MockRepository` by default. It will select `DBRepository` only when `DATABASE_URL` is present **and** the user has authorized database access in a future phase.
 - Routes refactored to call repositories instead of fixtures directly
 - **Contract**: Repository methods return Pydantic models or plain dicts — not raw SQLAlchemy objects
 
@@ -183,17 +231,19 @@ Map every table from `Courtesy Postgres Schema.md` into SQLAlchemy 2.x declarati
 
 | Deliverable | Acceptance |
 | --- | --- |
-| SQLAlchemy models for all 17 tables | Models match schema exactly, relationships defined |
-| `database.py` with connection pooling | Starts without DB, reports status in health check |
-| Repository pattern with mock/DB swap | Routes call repositories, not fixtures |
+| SQLAlchemy models for all 17 schema tables | Models match schema exactly, relationships defined, no extra tables |
+| `database.py` with connection scaffolding | Importable without DB, no connection attempt, no engine created |
+| Mock repository implementations | Routes call mock repositories, not fixtures directly |
+| DB repository stubs | Interface defined, methods raise NotImplementedError |
 | Mock fallback preserved | All 10 existing tests still pass with no DB configured |
 
 ### Acceptance Checks
 
 - `python -m pytest tests/ -v` — all existing tests pass (mock path)
 - `python -c "from app.models import *"` — all models import without error
-- `python -c "from app.database import get_engine"` — imports without attempting connection
-- New repository tests pass
+- `python -c "from app.database import get_engine"` — imports without creating an engine or attempting connection
+- Mock repository tests pass
+- No database connection is attempted during any test
 - Harness check passes
 
 ---
@@ -679,11 +729,13 @@ Add operational reporting that helps court staff understand workload, identify b
 1. **No real court data** — All data is fictional mock data until the user explicitly authorizes real data connection.
 2. **No real credentials** — `.env` is gitignored. Templates use placeholder values only.
 3. **No schema modifications** — `Courtesy Postgres Schema.md` is read-only. Models map to it, they don't change it.
-4. **No legal advice language** — All AI features labeled "draft preparation aid". No predictions, guarantees, or autonomous decisions.
-5. **No silent AI/data sharing** — Every data transmission requires explicit user consent.
-6. **Verification ladder** — Every phase ends with: backend tests pass, frontend builds, harness check passes, `git diff --check` passes.
-7. **Mock-first** — New features work with mock data before requiring database or external services.
-8. **Existing behavior preserved** — The workspace shell remains the first screen. Backend remains operational without a database.
+4. **No new database tables without approval** — The schema extension policy (above) governs when Courtesy may add app-owned tables. Until approved, features use mock fixtures or frontend-local state.
+5. **No legal advice language** — All AI features labeled "draft preparation aid". No predictions, guarantees, or autonomous decisions.
+6. **No silent AI/data sharing** — Every data transmission requires explicit user consent.
+7. **Verification ladder** — Every phase ends with: backend tests pass, frontend builds, harness check passes, `git diff --check` passes.
+8. **Mock-first** — New features work with mock data before requiring database or external services.
+9. **Existing behavior preserved** — The workspace shell remains the first screen. Backend remains operational without a database.
+10. **No live database I/O without authorization** — `DATABASE_URL` scaffolding exists but no engine is created, no session is opened, and no query is executed until the user explicitly authorizes database access.
 
 ---
 
@@ -692,18 +744,22 @@ Add operational reporting that helps court staff understand workload, identify b
 > [!IMPORTANT]
 > These decisions should be made before or during the relevant phase. They don't block Phase 1 or 2.
 
-1. **Task model**: The current PostgreSQL schema doesn't have a `tasks` table. Should tasks be a new table (Courtesy-specific addition) or should they be mapped to an existing concept in the schema? This affects Phases 2 and 4.
+1. **Schema extension approval**: When should Courtesy be allowed to add its own tables (tasks, documents, notes, users, audit_log) via Alembic migrations? This is the single most important gating question — it affects Phases 4, 5, 6, and 7. Until answered, those features stay mock/local.
 
-2. **Document model**: Similarly, the schema doesn't have a `documents` table. Should this be a new table? This affects Phases 2 and 5.
+2. **Task model**: The current PostgreSQL schema doesn't have a `tasks` table. Should tasks be a new Courtesy-owned table, or should they be mapped to an existing concept in the schema? This affects Phases 2 and 4.
 
-3. **Notes model**: Should case notes be a new table, or should they use the `description` field on the `cases` table? This affects Phase 4.
+3. **Document model**: Similarly, the schema doesn't have a `documents` table. Should this be a new table? This affects Phases 2 and 5.
 
-4. **Authentication provider**: JWT self-managed, or integrate with an external auth provider (Auth0, Keycloak, etc.)? This affects Phase 6.
+4. **Notes model**: Should case notes be a new table, or should they use the `description` field on the `cases` table? This affects Phase 4.
 
-5. **File storage**: Local filesystem, S3-compatible object storage, or integration with a court document management system? This affects Phase 5 (strategy only — implementation deferred).
+5. **Authentication provider**: JWT self-managed, or integrate with an external auth provider (Auth0, Keycloak, etc.)? This affects Phase 6.
 
-6. **Deployment target**: Docker containers, cloud platform (AWS/GCP/Azure), or bare metal? This affects Phase 8.
+6. **File storage**: Local filesystem, S3-compatible object storage, or integration with a court document management system? This affects Phase 5 (strategy only — implementation deferred).
 
-7. **Chart library**: For Phase 9 dashboards — Recharts, Chart.js, Nivo, or MUI X Charts? Should align with the existing MUI design system.
+7. **Deployment target**: Docker containers, cloud platform (AWS/GCP/Azure), or bare metal? This affects Phase 8.
 
-8. **Phase parallelism**: Should I execute Phases 1 and 2 in parallel (using subagents), or sequentially? Parallel is faster but uses more resources.
+8. **Chart library**: For Phase 9 dashboards — Recharts, Chart.js, Nivo, or MUI X Charts? Should align with the existing MUI design system.
+
+9. **Phase parallelism**: Should I execute Phases 1 and 2 in parallel (using subagents), or sequentially? Parallel is faster but uses more resources.
+
+10. **Database access authorization**: When should Courtesy be allowed to connect to the real PostgreSQL database? This gates the transition from mock repositories to DB repositories in Phase 2 and beyond.
