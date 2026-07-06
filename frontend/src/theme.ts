@@ -10,65 +10,56 @@ export const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#5c8aff',
-      light: '#8aadff',
-      dark: '#3a6bdb',
+      main: '#4F46E5', // Indigo
+      light: '#818CF8',
+      dark: '#3730A3',
     },
     secondary: {
-      main: '#7c5cbf',
-      light: '#a88ae0',
-      dark: '#5a3d9e',
+      main: '#B45309', // Amber/Bronze for legal accent
+      light: '#F59E0B',
+      dark: '#78350F',
     },
     background: {
-      default: '#0d1117',
-      paper: '#161b22',
+      default: '#090A0C',
+      paper: '#121418',
     },
     text: {
-      primary: '#c9d1d9',
-      secondary: '#8b949e',
+      primary: '#F3F4F6',
+      secondary: '#9CA3AF',
     },
-    divider: '#30363d',
+    divider: '#272A30',
     error: {
-      main: '#f85149',
+      main: '#EF4444',
     },
     warning: {
-      main: '#d29922',
+      main: '#F59E0B',
     },
     success: {
-      main: '#3fb950',
+      main: '#10B981',
     },
     info: {
-      main: '#58a6ff',
+      main: '#3B82F6',
     },
   },
   typography: {
     fontFamily: '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: { fontSize: '1.75rem', fontWeight: 600, letterSpacing: '-0.02em', color: '#f0f6fc' },
-    h2: { fontSize: '1.5rem', fontWeight: 600, letterSpacing: '-0.01em', color: '#f0f6fc' },
-    h3: { fontSize: '1.25rem', fontWeight: 600, color: '#f0f6fc' },
-    h4: { fontSize: '1rem', fontWeight: 600, color: '#f0f6fc' },
-    body1: { fontSize: '0.875rem', lineHeight: 1.5 },
-    body2: { fontSize: '0.8125rem', lineHeight: 1.43 },
-    button: { textTransform: 'none', fontWeight: 500 },
-    caption: { fontSize: '0.75rem', color: '#8b949e' },
-  },
-  breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 960,
-      lg: 1280,
-      xl: 1920,
-    },
+    h1: { fontFamily: '"Merriweather", "Georgia", serif', fontSize: '1.75rem', fontWeight: 700, color: '#F9FAFB' },
+    h2: { fontFamily: '"Merriweather", "Georgia", serif', fontSize: '1.35rem', fontWeight: 700, color: '#F9FAFB' },
+    h3: { fontFamily: '"Merriweather", "Georgia", serif', fontSize: '1.15rem', fontWeight: 600, color: '#F9FAFB' },
+    h4: { fontFamily: '"Inter", sans-serif', fontSize: '0.875rem', fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em' },
+    body1: { fontSize: '0.9rem', lineHeight: 1.6 },
+    body2: { fontSize: '0.8125rem', lineHeight: 1.5 },
+    button: { textTransform: 'none', fontWeight: 600, fontFamily: '"Inter", sans-serif' },
+    caption: { fontSize: '0.75rem', color: '#6B7280' },
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 2, // Very sharp corners for a serious document feel
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '6px',
+          borderRadius: '2px',
           padding: '6px 16px',
         },
         contained: {
@@ -83,16 +74,20 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          border: '1px solid #30363d',
-          backgroundColor: '#161b22',
+          border: '1px solid #272A30',
+          backgroundColor: '#121418',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)',
         },
       },
     },
     MuiChip: {
       styleOverrides: {
         root: {
-          fontWeight: 500,
-          fontSize: '0.75rem',
+          fontWeight: 600,
+          fontSize: '0.7rem',
+          borderRadius: '2px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
         },
       },
     },

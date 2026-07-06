@@ -35,52 +35,56 @@ const TYPE_COLORS: Record<string, string> = {
 export function CaseList({ cases, selectedCaseId, onSelectCase, loading, onClearFilters }: CaseListProps) {
   if (loading) {
     return (
-      <Box sx={{ p: 2 }}>
-        {[1, 2, 3, 4].map((i) => (
-          <Skeleton
-            key={i}
-            variant="rounded"
-            height={100}
-            sx={{ mb: 1.5, bgcolor: 'rgba(48, 54, 61, 0.4)' }}
-          />
+      <Box sx={{ width: '100%', p: 2 }}>
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <Box key={i} sx={{ borderBottom: '1px solid', borderColor: 'divider', py: 1.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Skeleton variant="text" width={120} />
+              <Skeleton variant="rounded" width={60} height={20} />
+            </Box>
+            <Skeleton variant="text" width="80%" />
+          </Box>
         ))}
       </Box>
     );
   }
 
   return (
-    <Box sx={{ p: 1.5 }}>
-      <Typography
-        variant="h3"
-        sx={{ px: 1, py: 1, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}
-      >
-        Cases ({cases.length})
-      </Typography>
+    <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper', position: 'sticky', top: 0, zIndex: 2 }}>
+        <Typography
+          variant="h3"
+          sx={{ color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+        >
+          Cases ({cases.length})
+        </Typography>
+      </Box>
 
-      {cases.map((courtCase) => (
+      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        {cases.map((courtCase) => (
         <Box
           key={courtCase.case_id}
           onClick={() => onSelectCase(courtCase.case_id)}
           sx={{
-            p: 1.5,
-            mb: 0.75,
-            borderRadius: '8px',
+            p: 2,
             cursor: 'pointer',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
             backgroundColor:
               selectedCaseId === courtCase.case_id
-                ? 'rgba(92, 138, 255, 0.08)'
+                ? 'rgba(92, 138, 255, 0.05)'
                 : 'transparent',
-            border: '1px solid',
-            borderColor:
+            borderLeft: '3px solid',
+            borderLeftColor:
               selectedCaseId === courtCase.case_id
-                ? 'rgba(92, 138, 255, 0.3)'
+                ? 'primary.main'
                 : 'transparent',
-            transition: 'all 0.15s ease',
+            transition: 'background-color 0.1s ease',
             '&:hover': {
               backgroundColor:
                 selectedCaseId === courtCase.case_id
-                  ? 'rgba(92, 138, 255, 0.12)'
-                  : 'rgba(48, 54, 61, 0.3)',
+                  ? 'rgba(92, 138, 255, 0.08)'
+                  : 'rgba(255, 255, 255, 0.02)',
             },
           }}
         >
@@ -141,6 +145,7 @@ export function CaseList({ cases, selectedCaseId, onSelectCase, loading, onClear
           </Typography>
         </Box>
       ))}
+      </Box>
 
       {cases.length === 0 && (
         <Box sx={{ p: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>

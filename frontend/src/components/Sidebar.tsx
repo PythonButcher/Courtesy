@@ -20,6 +20,7 @@ import PsychologyIcon from '@mui/icons-material/Psychology';
 import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 
 interface SidebarProps {
   activeNav: string;
@@ -27,6 +28,7 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
+  { key: 'overview', label: 'Overview', icon: <DashboardIcon /> },
   { key: 'cases', label: 'Cases', icon: <GavelIcon /> },
   { key: 'hearings', label: 'Hearings', icon: <EventIcon /> },
   { key: 'deadlines', label: 'Deadlines', icon: <AssignmentLateIcon /> },
@@ -66,7 +68,7 @@ export function Sidebar({ activeNav, onNavigate }: SidebarProps) {
       sx={{
         width,
         minWidth: width,
-        backgroundColor: '#0d1117',
+        backgroundColor: 'background.default',
         borderRight: '1px solid',
         borderColor: 'divider',
         display: 'flex',
@@ -117,14 +119,17 @@ export function Sidebar({ activeNav, onNavigate }: SidebarProps) {
               key={item.key}
               onClick={() => onNavigate(item.key)}
               sx={{
-                borderRadius: '6px',
-                mb: 0.5,
+                borderRadius: 0,
+                mb: 0,
+                py: 1.25,
                 justifyContent: isCollapsed ? 'center' : 'flex-start',
-                px: isCollapsed ? 1 : 1.5,
-                backgroundColor: isActive ? 'rgba(92, 138, 255, 0.15)' : 'transparent',
+                px: isCollapsed ? 1 : 2.5,
+                borderLeft: '3px solid',
+                borderColor: isActive ? 'primary.main' : 'transparent',
+                backgroundColor: isActive ? 'rgba(92, 138, 255, 0.05)' : 'transparent',
                 color: isActive ? 'primary.light' : 'text.secondary',
                 '&:hover': {
-                  backgroundColor: isActive ? 'rgba(92, 138, 255, 0.25)' : 'rgba(255,255,255,0.05)',
+                  backgroundColor: 'rgba(255,255,255,0.03)',
                   color: isActive ? 'primary.light' : 'text.primary',
                 },
               }}
@@ -167,12 +172,14 @@ export function Sidebar({ activeNav, onNavigate }: SidebarProps) {
           <ListItemButton
             onClick={() => onNavigate('settings')}
             sx={{
-              borderRadius: '6px',
+              borderRadius: 0,
+              py: 1.25,
+              borderLeft: '3px solid transparent',
               justifyContent: isCollapsed ? 'center' : 'flex-start',
-              px: isCollapsed ? 1 : 1.5,
+              px: isCollapsed ? 1 : 2.5,
               color: 'text.secondary',
               '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.05)',
+                backgroundColor: 'rgba(255,255,255,0.03)',
                 color: 'text.primary',
               },
             }}

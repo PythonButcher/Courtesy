@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Chip, Paper, Divider, Alert, Tabs, Tab, Skeleton } from '@mui/material';
+import { Box, Typography, Chip, Paper, Divider, Alert, Tabs, Tab, Skeleton, Button } from '@mui/material';
 import EventIcon from '@mui/icons-material/Event';
 import AssignmentLateIcon from '@mui/icons-material/AssignmentLate';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -7,11 +7,13 @@ import PsychologyIcon from '@mui/icons-material/Psychology';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import PeopleIcon from '@mui/icons-material/People';
 import InfoIcon from '@mui/icons-material/Info';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import type { CaseDetail } from '../types';
 
 interface CaseDetailPanelProps {
   caseDetail: CaseDetail | null;
   loading?: boolean;
+  onBack?: () => void;
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -52,7 +54,7 @@ function TabPanel(props: { children?: React.ReactNode; index: number; value: num
   );
 }
 
-export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
+export function CaseDetailPanel({ caseDetail, loading, onBack }: CaseDetailPanelProps) {
   const [tabValue, setTabValue] = useState(0);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -61,15 +63,20 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
 
   if (loading) {
     return (
-      <Box sx={{ p: 3, maxWidth: 900 }}>
-        <Skeleton variant="text" width={200} height={40} />
-        <Skeleton variant="text" width="60%" />
-        <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-          <Skeleton variant="rounded" width={120} height={32} />
-          <Skeleton variant="rounded" width={120} height={32} />
+      <Box sx={{ p: 3, maxWidth: 1000 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+          <Box sx={{ flex: 1 }}>
+            <Skeleton variant="text" width={200} height={40} />
+            <Skeleton variant="text" width="60%" />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 4 }}>
+            <Skeleton variant="text" width={80} height={40} />
+            <Skeleton variant="text" width={80} height={40} />
+            <Skeleton variant="text" width={80} height={40} />
+          </Box>
         </Box>
-        <Divider sx={{ my: 3 }} />
-        <Skeleton variant="rectangular" height={300} />
+        <Divider sx={{ mb: 3 }} />
+        <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 1 }} />
       </Box>
     );
   }
@@ -102,29 +109,42 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
           borderColor: 'divider',
         }}
       >
-        <Box sx={{ mb: 2, maxWidth: 900 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-            <Typography variant="h1" sx={{ fontSize: '1.5rem' }}>
-              {caseDetail.case_number}
+        <Box sx={{ mb: 3, maxWidth: 1000, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box>
+            {onBack && (
+              <Button onClick={onBack} startIcon={<ArrowBackIcon />} size="small" sx={{ mb: 1, ml: -1, color: 'text.secondary' }}>
+                Back
+              </Button>
+            )}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+              <Typography variant="h1" sx={{ fontSize: '1.35rem', letterSpacing: '-0.02em', color: 'text.primary' }}>
+                {caseDetail.case_number}
+              </Typography>
+              <Chip
+                label={caseDetail.status}
+                color={STATUS_COLORS[caseDetail.status] || 'default'}
+                size="small"
+                sx={{ fontWeight: 600, height: 22, fontSize: '0.7rem', opacity: caseDetail.status === 'Dismissed' ? 0.7 : 1 }}
+              />
+              <Chip label={caseDetail.case_type} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
+            </Box>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {caseDetail.parties.map((p) => p.name).join(' v. ')}
             </Typography>
-            <Chip
-              label={caseDetail.status}
-              color={STATUS_COLORS[caseDetail.status] || 'default'}
-              size="small"
-              sx={{ fontWeight: 600, opacity: caseDetail.status === 'Dismissed' ? 0.7 : 1 }}
-            />
-            <Chip label={caseDetail.case_type} size="small" variant="outlined" />
           </Box>
-          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mt: 1 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              <strong>Court:</strong> {caseDetail.court_name}
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              <strong>Judge:</strong> {caseDetail.assigned_judge}
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              <strong>Filed:</strong> {formatDate(caseDetail.filing_date)}
-            </Typography>
+          <Box sx={{ display: 'flex', gap: 4, textAlign: 'right' }}>
+            <Box>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Court</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>{caseDetail.court_name}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Judge</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>{caseDetail.assigned_judge}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Filed</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>{formatDate(caseDetail.filing_date)}</Typography>
+            </Box>
           </Box>
         </Box>
 
@@ -148,24 +168,46 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
       <Box sx={{ flex: 1, overflow: 'auto', px: 3, maxWidth: 900 }}>
         {/* Tab 0: Overview */}
         <TabPanel value={tabValue} index={0}>
-          <Typography variant="h3" sx={{ mb: 2 }}>Case Summary</Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.7, mb: 4 }}>
-            {caseDetail.description || 'No description provided.'}
-          </Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 4 }}>
+            <Box>
+              <Typography variant="h3" sx={{ mb: 2, fontSize: '1.125rem' }}>Case Posture</Typography>
+              <Paper sx={{ p: 3, mb: 4 }}>
+                <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+                  {caseDetail.description || 'No case description provided.'}
+                </Typography>
+              </Paper>
+              <Typography variant="h3" sx={{ mb: 2, fontSize: '1.125rem' }}>Next Hearing</Typography>
+              {upcomingHearings.length > 0 ? (
+                <Paper sx={{ p: 3, borderLeft: '4px solid', borderColor: 'primary.main' }}>
+                  <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>{upcomingHearings[0].hearing_type}</Typography>
+                  <Typography variant="body2" sx={{ color: 'primary.main', mb: 1 }}>{formatDate(upcomingHearings[0].hearing_date)} — {upcomingHearings[0].courtroom}</Typography>
+                </Paper>
+              ) : (
+                <Paper sx={{ p: 3, backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>No upcoming hearings scheduled.</Typography>
+                </Paper>
+              )}
+            </Box>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 3 }}>
-            <Paper sx={{ p: 2, backgroundColor: 'rgba(255,255,255,0.02)' }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase' }}>Next Hearing</Typography>
-              <Typography variant="body2" sx={{ mt: 1, fontWeight: 500 }}>
-                {upcomingHearings.length > 0 ? `${formatDate(upcomingHearings[0].hearing_date)} - ${upcomingHearings[0].hearing_type}` : 'None scheduled'}
-              </Typography>
-            </Paper>
-            <Paper sx={{ p: 2, backgroundColor: 'rgba(255,255,255,0.02)' }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase' }}>Open Tasks</Typography>
-              <Typography variant="body2" sx={{ mt: 1, fontWeight: 500 }}>
-                {caseDetail.tasks?.filter(t => t.status !== 'done').length || 0} items pending
-              </Typography>
-            </Paper>
+            <Box>
+              <Typography variant="h3" sx={{ mb: 2, fontSize: '1.125rem' }}>Action Required</Typography>
+              <Paper sx={{ p: 0, overflow: 'hidden' }}>
+                <Box sx={{ p: 2, backgroundColor: 'rgba(255,255,255,0.02)', borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{caseDetail.tasks?.filter(t => t.status !== 'done').length || 0} Open Tasks</Typography>
+                </Box>
+                <Box sx={{ p: 2 }}>
+                  {caseDetail.tasks?.filter(t => t.status !== 'done').slice(0, 3).map(task => (
+                    <Box key={task.task_id} sx={{ mb: 1.5, '&:last-child': { mb: 0 } }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.25 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 500, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.title}</Typography>
+                        {task.status === 'overdue' && <Chip label="OVERDUE" size="small" sx={{ height: 16, fontSize: '0.6rem', backgroundColor: 'rgba(248,81,73,0.15)', color: 'error.main' }} />}
+                      </Box>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>Due {formatDate(task.due_date)}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Paper>
+            </Box>
           </Box>
         </TabPanel>
 
@@ -180,17 +222,17 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
               <Typography variant="h4" sx={{ mb: 2, color: 'text.primary' }}>Upcoming</Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {upcomingHearings.map((h) => (
-                  <Paper key={h.hearing_id} sx={{ p: 2, borderLeft: '3px solid', borderColor: 'primary.main' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                  <Box key={h.hearing_id} sx={{ py: 1.5, px: 2, borderLeft: '3px solid', borderColor: 'primary.main', borderBottom: '1px solid', borderBottomColor: 'divider', backgroundColor: 'rgba(92, 138, 255, 0.03)' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <Box>
                         <Typography variant="body1" sx={{ fontWeight: 600 }}>{h.hearing_type}</Typography>
                         <Typography variant="body2" color="primary.main" sx={{ fontWeight: 500, mt: 0.5 }}>
                           {formatDate(h.hearing_date)}
                         </Typography>
                       </Box>
-                      <Chip label={h.courtroom} size="small" variant="outlined" />
+                      <Chip label={h.courtroom} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
                     </Box>
-                  </Paper>
+                  </Box>
                 ))}
               </Box>
             </Box>
@@ -201,19 +243,19 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
               <Typography variant="h4" sx={{ mb: 2, color: 'text.secondary' }}>Past</Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {pastHearings.map((h) => (
-                  <Paper key={h.hearing_id} sx={{ p: 2, opacity: 0.8, backgroundColor: 'rgba(255,255,255,0.01)' }}>
+                  <Box key={h.hearing_id} sx={{ py: 1.5, px: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
                         {h.hearing_type} — {formatDate(h.hearing_date)}
                       </Typography>
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>{h.courtroom}</Typography>
                     </Box>
                     {h.result_summary && (
-                      <Typography variant="body2" sx={{ color: 'text.secondary', p: 1, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 1 }}>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', p: 1.5, backgroundColor: 'rgba(0,0,0,0.2)', borderLeft: '2px solid', borderColor: 'divider' }}>
                         <strong>Result:</strong> {h.result_summary}
                       </Typography>
                     )}
-                  </Paper>
+                  </Box>
                 ))}
               </Box>
             </Box>
@@ -236,15 +278,23 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
                 .map((task) => {
                   const statusInfo = TASK_STATUS_LABELS[task.status] || { label: task.status, color: '#8b949e' };
                   return (
-                    <Paper
+                    <Box
                       key={task.task_id}
                       sx={{
-                        p: 2,
+                        py: 2,
+                        px: 2,
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
                         borderLeft: `3px solid ${PRIORITY_COLORS[task.priority] || '#8b949e'}`,
                         opacity: statusInfo.muted ? 0.6 : 1,
                         ...(task.status === 'overdue' && {
-                          backgroundColor: 'rgba(248, 81, 73, 0.06)',
+                          backgroundColor: 'rgba(248, 81, 73, 0.04)',
                         }),
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 0.5,
+                        transition: 'background-color 0.1s ease',
+                        '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.02)' }
                       }}
                     >
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
@@ -261,7 +311,7 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
                             height: 20,
                             fontSize: '0.65rem',
                             fontWeight: 700,
-                            backgroundColor: `${statusInfo.color}20`,
+                            backgroundColor: `${statusInfo.color}15`,
                             color: statusInfo.color,
                             border: 'none',
                           }}
@@ -281,7 +331,7 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
                           Assignee: {task.assigned_to}
                         </Typography>
                       </Box>
-                    </Paper>
+                    </Box>
                   );
                 })}
             </Box>
@@ -293,20 +343,20 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
           {!caseDetail.documents || caseDetail.documents.length === 0 ? (
             <Typography variant="body2" color="text.secondary">No documents on file.</Typography>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               {caseDetail.documents.map((doc) => (
-                <Paper key={doc.document_id} sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <DescriptionIcon sx={{ color: 'text.secondary', fontSize: 32 }} />
+                <Box key={doc.document_id} sx={{ py: 1.5, px: 2, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid', borderColor: 'divider', '&:hover': { backgroundColor: 'rgba(255,255,255,0.02)' } }}>
+                  <DescriptionIcon sx={{ color: 'text.secondary', fontSize: 24 }} />
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>{doc.title}</Typography>
-                    <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{doc.title}</Typography>
+                    <Box sx={{ display: 'flex', gap: 2, mt: 0.5, alignItems: 'center' }}>
                       <Chip label={doc.document_type} size="small" variant="outlined" sx={{ fontSize: '0.65rem', height: 20 }} />
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                         Filed {formatDate(doc.filed_date)} by {doc.filed_by}
                       </Typography>
                     </Box>
                   </Box>
-                </Paper>
+                </Box>
               ))}
             </Box>
           )}
@@ -317,17 +367,17 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
           {!caseDetail.parties || caseDetail.parties.length === 0 ? (
             <Typography variant="body2" color="text.secondary">No parties associated with this case.</Typography>
           ) : (
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 2 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1px', backgroundColor: 'divider', border: '1px solid', borderColor: 'divider' }}>
               {caseDetail.parties.map((party, idx) => (
-                <Paper key={idx} sx={{ p: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                    <PeopleIcon sx={{ color: 'primary.main' }} />
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>{party.name}</Typography>
-                  </Box>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <Box key={idx} sx={{ p: 2, backgroundColor: 'background.default' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', mb: 0.5 }}>
                     {party.role}
                   </Typography>
-                </Paper>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <PeopleIcon sx={{ color: 'primary.main', fontSize: 18 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{party.name}</Typography>
+                  </Box>
+                </Box>
               ))}
             </Box>
           )}
@@ -352,16 +402,16 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
           {!caseDetail.decision_prep_notes || caseDetail.decision_prep_notes.length === 0 ? (
             <Typography variant="body2" color="text.secondary">No decision-prep notes for this case.</Typography>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               {caseDetail.decision_prep_notes.map((note) => (
-                <Paper key={note.note_id} sx={{ p: 2, borderLeft: '3px solid', borderColor: 'secondary.main' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                    <Typography variant="h4">{note.title}</Typography>
+                <Box key={note.note_id} sx={{ py: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'secondary.light' }}>{note.title}</Typography>
                     <Chip
                       label={note.label}
                       size="small"
                       sx={{
-                        height: 22,
+                        height: 20,
                         fontSize: '0.65rem',
                         fontWeight: 700,
                         backgroundColor: 'rgba(124, 92, 191, 0.15)',
@@ -370,13 +420,13 @@ export function CaseDetailPanel({ caseDetail, loading }: CaseDetailPanelProps) {
                       }}
                     />
                   </Box>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7, mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6, mb: 1 }}>
                     {note.content}
                   </Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                     Updated {formatDateTime(note.updated_at)}
                   </Typography>
-                </Paper>
+                </Box>
               ))}
             </Box>
           )}

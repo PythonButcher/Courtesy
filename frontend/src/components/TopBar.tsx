@@ -52,10 +52,10 @@ export function TopBar({ searchQuery, onSearchChange, isOffline, filterCount = 0
           sx={{
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: 'rgba(48, 54, 61, 0.4)',
-            borderRadius: '8px',
+            backgroundColor: 'background.default',
+            borderRadius: '4px',
             px: 1.5,
-            py: 0.5,
+            py: 0.25,
             width: 400,
             maxWidth: '100%',
             border: '1px solid',
@@ -108,25 +108,24 @@ export function TopBar({ searchQuery, onSearchChange, isOffline, filterCount = 0
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         {isOffline ? (
           <Tooltip title="Backend is unreachable. Using mock data.">
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, backgroundColor: 'rgba(210, 153, 34, 0.1)', px: 1.5, py: 0.5, borderRadius: '4px', border: '1px solid rgba(210, 153, 34, 0.2)' }}>
               <CloudOffIcon sx={{ fontSize: 16, color: 'warning.main' }} />
-              <Typography variant="caption" sx={{ color: 'warning.main', fontWeight: 500 }}>
-                Offline (Mock Data)
+              <Typography variant="caption" sx={{ color: 'warning.main', fontWeight: 600, letterSpacing: '0.02em' }}>
+                OFFLINE
               </Typography>
             </Box>
           </Tooltip>
         ) : (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              Mock Data Mode
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, backgroundColor: 'rgba(63, 185, 80, 0.05)', px: 1.5, py: 0.5, borderRadius: '4px', border: '1px solid rgba(63, 185, 80, 0.1)' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, letterSpacing: '0.02em' }}>
+              MOCK DATA
             </Typography>
             <Box
               sx={{
-                width: 8,
-                height: 8,
+                width: 6,
+                height: 6,
                 borderRadius: '50%',
-                backgroundColor: 'warning.main',
-                boxShadow: '0 0 6px rgba(210, 153, 34, 0.4)',
+                backgroundColor: 'success.main',
               }}
             />
           </Box>

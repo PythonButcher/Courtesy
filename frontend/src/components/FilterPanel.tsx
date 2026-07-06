@@ -44,7 +44,7 @@ export function FilterPanel({ show, filters, setFilters, sortConfig, setSortConf
 
   return (
     <Collapse in={show}>
-      <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper' }}>
+      <Box sx={{ p: 1.5, px: 3, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.default' }}>
         <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           
           {/* Status Filter */}

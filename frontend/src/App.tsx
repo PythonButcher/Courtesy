@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Box } from '@mui/material';
-import type { CourtCase, CaseDetail } from './types';
-import { fetchCases, fetchCaseDetail, checkHealth } from './services/courtApi';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
+import type { CourtCase, CaseDetail, Hearing, Task } from './types';
+import { fetchCases, fetchCaseDetail, fetchHearings, fetchTasks, checkHealth } from './services/courtApi';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { FilterPanel, Filters, SortConfig } from './components/FilterPanel';
 import { CaseList } from './components/CaseList';
 import { CaseDetailPanel } from './components/CaseDetailPanel';
+import { Dashboard } from './components/Dashboard';
 
 /**
  * Courtesy App – Main Application Shell
@@ -15,11 +16,17 @@ import { CaseDetailPanel } from './components/CaseDetailPanel';
  * Layout: left sidebar, top search bar, case list, and case detail panel.
  */
 export default function App() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   const [cases, setCases] = useState<CourtCase[]>([]);
+  const [hearings, setHearings] = useState<Hearing[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+
   const [selectedCaseId, setSelectedCaseId] = useState<number | null>(null);
   const [caseDetail, setCaseDetail] = useState<CaseDetail | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeNav, setActiveNav] = useState('cases');
+  const [activeNav, setActiveNav] = useState('overview');
   const [loading, setLoading] = useState(true);
 
   // Offline state
@@ -49,12 +56,15 @@ export default function App() {
   useEffect(() => {
     checkHealth().then((isHealthy) => setIsOffline(!isHealthy));
 
-    fetchCases()
-      .then((data) => {
-        setCases(data);
-        if (data.length > 0) {
-          setSelectedCaseId(data[0].case_id);
-        }
+    Promise.all([
+      fetchCases(),
+      fetchHearings(),
+      fetchTasks()
+    ])
+      .then(([casesData, hearingsData, tasksData]) => {
+        setCases(casesData);
+        setHearings(hearingsData);
+        setTasks(tasksData);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -70,6 +80,11 @@ export default function App() {
 
   const handleSelectCase = useCallback((caseId: number) => {
     setSelectedCaseId(caseId);
+  }, []);
+
+  const handleNavigateToCase = useCallback((caseId: number) => {
+    setSelectedCaseId(caseId);
+    setActiveNav('cases');
   }, []);
 
   const handleClearFilters = useCallback(() => {
@@ -160,32 +175,61 @@ export default function App() {
           availableJudges={availableJudges}
         />
 
-        {/* Content: Case List + Case Detail */}
-        <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          {/* Case List Panel */}
-          <Box
-            sx={{
-              width: 420,
-              minWidth: 360,
-              borderRight: '1px solid',
-              borderColor: 'divider',
-              overflow: 'auto',
-            }}
-          >
-            <CaseList
-              cases={filteredAndSortedCases}
-              selectedCaseId={selectedCaseId}
-              onSelectCase={handleSelectCase}
-              loading={loading}
-              onClearFilters={handleClearFilters}
-            />
-          </Box>
+        {/* Content: Conditional based on activeNav and mobile state */}
+        {activeNav === 'overview' ? (
+          <Dashboard
+            cases={cases}
+            hearings={hearings}
+            tasks={tasks}
+            onNavigateToCase={handleNavigateToCase}
+          />
+        ) : (
+          isMobile ? (
+            <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              {selectedCaseId ? (
+                <Box sx={{ flex: 1, overflow: 'auto', position: 'relative' }}>
+                  <CaseDetailPanel caseDetail={caseDetail} loading={loading} onBack={() => setSelectedCaseId(null)} />
+                </Box>
+              ) : (
+                <Box sx={{ flex: 1, overflow: 'auto' }}>
+                  <CaseList
+                    cases={filteredAndSortedCases}
+                    selectedCaseId={selectedCaseId}
+                    onSelectCase={handleSelectCase}
+                    loading={loading}
+                    onClearFilters={handleClearFilters}
+                  />
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              {/* Case List Panel */}
+              <Box
+                sx={{
+                  width: 420,
+                  minWidth: 360,
+                  borderRight: '1px solid',
+                  borderColor: 'divider',
+                  overflow: 'auto',
+                }}
+              >
+                <CaseList
+                  cases={filteredAndSortedCases}
+                  selectedCaseId={selectedCaseId}
+                  onSelectCase={handleSelectCase}
+                  loading={loading}
+                  onClearFilters={handleClearFilters}
+                />
+              </Box>
 
-          {/* Case Detail Panel */}
-          <Box sx={{ flex: 1, overflow: 'auto', position: 'relative' }}>
-            <CaseDetailPanel caseDetail={caseDetail} loading={loading} />
-          </Box>
-        </Box>
+              {/* Case Detail Panel */}
+              <Box sx={{ flex: 1, overflow: 'auto', position: 'relative' }}>
+                <CaseDetailPanel caseDetail={caseDetail} loading={loading} />
+              </Box>
+            </Box>
+          )
+        )}
       </Box>
     </Box>
   );
