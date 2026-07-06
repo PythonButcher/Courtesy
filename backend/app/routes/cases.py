@@ -1,20 +1,18 @@
 """
 Courtesy Backend – Cases Route
 
-Serves mock court case data. When PostgreSQL is connected, the fixture
-imports below will be replaced with database queries.
+Serves court case data via the repository layer.
 """
 
 from flask import Blueprint, jsonify, request
 
-# TODO: Replace fixture imports with database queries when PostgreSQL is connected.
-from app.fixtures import (
-    get_all_cases,
-    get_case_by_id,
-    get_documents_by_case,
-    get_hearings_by_case,
-    get_tasks_by_case,
-    get_decision_prep_by_case,
+from app.repositories import (
+    get_repository,
+    CaseRepository,
+    HearingRepository,
+    TaskRepository,
+    DocumentRepository,
+    DecisionPrepRepository,
 )
 
 cases_bp = Blueprint("cases", __name__)
@@ -29,17 +27,11 @@ def list_cases():
         status (str): Filter by case status name
         case_type (str): Filter by case type code
     """
-    cases = get_all_cases()
-
-    # Optional filtering
+    repo = get_repository(CaseRepository)
     status_filter = request.args.get("status")
     type_filter = request.args.get("case_type")
 
-    if status_filter:
-        cases = [c for c in cases if c["status"].lower() == status_filter.lower()]
-    if type_filter:
-        cases = [c for c in cases if c["case_type"].lower() == type_filter.lower()]
-
+    cases = repo.get_all(status=status_filter, case_type=type_filter)
     return jsonify(cases)
 
 
@@ -49,17 +41,23 @@ def get_case(case_id: int):
     Get a single case by ID with related hearings, tasks, documents,
     and decision-prep notes.
     """
-    case = get_case_by_id(case_id)
+    case_repo = get_repository(CaseRepository)
+    case = case_repo.get_by_id(case_id)
     if case is None:
         return jsonify({"error": "Case not found"}), 404
+
+    hearing_repo = get_repository(HearingRepository)
+    task_repo = get_repository(TaskRepository)
+    doc_repo = get_repository(DocumentRepository)
+    prep_repo = get_repository(DecisionPrepRepository)
 
     # Enrich with related data
     enriched = {
         **case,
-        "hearings": get_hearings_by_case(case_id),
-        "tasks": get_tasks_by_case(case_id),
-        "documents": get_documents_by_case(case_id),
-        "decision_prep_notes": get_decision_prep_by_case(case_id),
+        "hearings": hearing_repo.get_by_case_id(case_id),
+        "tasks": task_repo.get_by_case_id(case_id),
+        "documents": doc_repo.get_by_case_id(case_id),
+        "decision_prep_notes": prep_repo.get_by_case_id(case_id),
     }
 
     return jsonify(enriched)

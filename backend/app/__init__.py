@@ -8,12 +8,14 @@ from flask import Flask
 from flask_cors import CORS
 
 from app.config import load_config
+from app.database import init_db
 
 
 def create_app() -> Flask:
     """Create the Flask application with all routes registered."""
     app = Flask(__name__)
     load_config(app)
+    init_db(app)
 
     # Enable CORS for frontend dev server
     CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"])

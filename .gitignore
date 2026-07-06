@@ -46,3 +46,6 @@ logs/
 schema/dumps/
 schema/*.sql
 !schema/README.md
+
+# ─── Temporary Agent/Harness Files ─────────────────────────
+.codex_tmp_py/
